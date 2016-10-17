@@ -1,6 +1,7 @@
+import click
 import colors
 import datetime
-import click
+from dateutil import parser
 '''
 todo:
     make colormap a passable param
@@ -14,7 +15,11 @@ colormapping = (
         )
 
 def get_age_timedelta(timestamp_string, pattern):
-    return datetime.datetime.now() - datetime.datetime.strptime(timestamp_string, pattern)
+    if pattern is None:
+        output = datetime.datetime.now() - parser.parse(timestamp_string)
+    else:
+        output = datetime.datetime.now() - datetime.strptime(timestamp_string, pattern)
+    return output
 
 def get_colorfn_from_timedelta(age_td, colormapping=colormapping):
     # Find our else_color
@@ -32,12 +37,12 @@ def get_colorfn_from_timedelta(age_td, colormapping=colormapping):
     return else_color
 
 @click.command()
-@click.option('--pattern', default="%Y-%m-%d %H:%M", help="Python strptime format string")
+#@click.option('--pattern', default="%Y-%m-%d %H:%M", help="Python strptime format string")
+@click.option('--pattern', default=None, help="Python strptime format string, guess if none provided")
 @click.option('--date-field', default=2, help="Field to extract timestamp from")
 @click.option('--field-sep', default="\t", help="Field Seperator")
 @click.argument('infile', default="-") #, help="File to process, - for stdin")
 def color_by_age(pattern,date_field, field_sep, infile):
-    print locals()
     with click.open_file(infile, "r") as infile:
         for line in infile:
             try:
